@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { and, asc, avg, count, desc, eq, gte, inArray, ne, sum } from "drizzle-orm";
 import { db } from "../lib/db.js";
-import { bookings, pricingCategories, users, vehicles } from "../lib/schema.js";
+import { bookingConflicts, bookings, pricingCategories, users, vehicles } from "../lib/schema.js";
 import { apiSuccess, apiError } from "../lib/api.js";
 import { formatUser, formatVehicle, serializeId } from "../lib/serialize.js";
 import { resolveUser } from "../lib/session.js";
@@ -221,6 +221,7 @@ router.get("/analytics", async (req, res) => {
     nonCancelledBookings,
     rentedVehicles,
     bookings30d,
+    conflictCount,
   ] = await Promise.all([
     countRows(users, eq(users.role, "customer")),
     countRows(users, and(eq(users.role, "agency"), eq(users.isActive, true))),
@@ -234,6 +235,7 @@ router.get("/analytics", async (req, res) => {
     countRows(bookings, ne(bookings.status, "cancelled")),
     countRows(vehicles, eq(vehicles.status, "rented")),
     countRows(bookings, gte(bookings.createdAt, thirtyDaysAgo)),
+    countRows(bookingConflicts, undefined),
   ]);
 
   const [avgRow] = await db
@@ -255,6 +257,10 @@ router.get("/analytics", async (req, res) => {
     .where(and(eq(users.role, "customer"), gte(users.createdAt, thirtyDaysAgo)));
 
   const conversionRate = nonCancelledBookings > 0 ? (approvedBookings / nonCancelledBookings) * 100 : 0;
+  // Share of booking attempts turned away because the vehicle was already
+  // booked for those dates: conflicts / (conflicts + bookings actually created).
+  const bookingAttempts = totalBookingsAll + conflictCount;
+  const conflictRate = bookingAttempts > 0 ? (conflictCount / bookingAttempts) * 100 : 0;
   const utilizationRate = totalVehicles > 0 ? (rentedVehicles / totalVehicles) * 100 : 0;
   const monthlyActiveUsers = new Set([
     ...bookingGroups30d.map((b) => b.customerId),
@@ -275,7 +281,8 @@ router.get("/analytics", async (req, res) => {
       averageRentalDuration: Math.round((Number(avgRow.value) || 0) * 100) / 100,
       totalRevenue: Number(revenueRow.value) || 0,
       pricingCategories: pricingCount,
-      bookingConflictRate: 0,
+      bookingConflicts: conflictCount,
+      bookingConflictRate: Math.round(conflictRate * 100) / 100,
       monthlyActiveUsers,
     },
   });

@@ -208,6 +208,7 @@ function AdminPage() {
                 <Kpi label="Pending vehicles" value={String(kpis.pendingApprovals)} />
                 <Kpi label="Pending agencies" value={String(kpis.pendingAgencies)} />
                 <Kpi label="Monthly active users" value={String(kpis.monthlyActiveUsers)} />
+                <Kpi label="Booking conflict rate" value={`${kpis.bookingConflictRate}%`} />
               </div>
             </section>}
 

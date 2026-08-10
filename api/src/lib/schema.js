@@ -87,6 +87,28 @@ export const bookings = pgTable(
   })
 );
 
+// One row per booking attempt rejected because the vehicle was already booked
+// for the requested dates. Feeds the "booking conflict rate" KPI and gives the
+// admin a record of clashes to monitor.
+export const bookingConflicts = pgTable(
+  "BookingConflict",
+  {
+    id: text("id").primaryKey().$defaultFn(() => createId()),
+    customerId: text("customerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    vehicleId: text("vehicleId")
+      .notNull()
+      .references(() => vehicles.id, { onDelete: "cascade" }),
+    startDate: timestamp("startDate", { mode: "date" }).notNull(),
+    endDate: timestamp("endDate", { mode: "date" }).notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => ({
+    createdAtIdx: index("BookingConflict_createdAt_idx").on(t.createdAt),
+  })
+);
+
 export const pricingCategories = pgTable("PricingCategory", {
   id: text("id").primaryKey().$defaultFn(() => createId()),
   name: text("name").notNull(),

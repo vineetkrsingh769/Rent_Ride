@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { db } from "../lib/db.js";
-import { bookings, vehicles } from "../lib/schema.js";
+import { bookingConflicts, bookings, vehicles } from "../lib/schema.js";
 import { apiSuccess, apiError } from "../lib/api.js";
 import { resolveUser } from "../lib/session.js";
 import { hasBookingConflict } from "../lib/booking.js";
@@ -78,6 +78,13 @@ router.post("/", async (req, res) => {
 
   const conflict = await hasBookingConflict(vehicleId, start, end);
   if (conflict) {
+    // Recorded so the admin conflict-rate KPI reflects real clashes.
+    await db.insert(bookingConflicts).values({
+      customerId: user.userId,
+      vehicleId,
+      startDate: start,
+      endDate: end,
+    });
     return apiError(res, "Vehicle is already booked for the selected dates", 409);
   }
 

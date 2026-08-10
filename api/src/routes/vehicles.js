@@ -12,6 +12,23 @@ const listRelations = {
   owner: { columns: { id: true, name: true, agencyName: true } },
 };
 
+const EDITABLE_FIELDS = [
+  "vehicleNumber",
+  "name",
+  "brand",
+  "vehicleModel",
+  "type",
+  "modelYear",
+  "fuelType",
+  "transmission",
+  "seats",
+  "mileage",
+  "description",
+  "images",
+];
+const AGENCY_STATUSES = ["available", "maintenance"];
+const ADMIN_STATUSES = ["available", "maintenance", "pending_approval", "rented"];
+
 router.get("/", async (req, res) => {
   const { status, type, fuelType, location, minPrice, maxPrice, search, duration } = req.query ?? {};
   const conditions = [];
@@ -120,18 +137,51 @@ router.put("/:id", async (req, res) => {
   if (!isOwner && user.role !== "admin") return apiError(res, "Forbidden", 403);
 
   const body = req.body ?? {};
-  const { pricing, location, ...rest } = body;
-  const data = {
-    ...rest,
-    ...(location ? { location } : {}),
-    ...(pricing
-      ? {
-          priceDaily: Number(pricing.daily),
-          priceWeekly: Number(pricing.weekly),
-          priceMonthly: Number(pricing.monthly),
-        }
-      : {}),
-  };
+  const data = {};
+
+  // Only these fields may be changed through this endpoint. Anything else in the
+  // body (isApproved, ownerId, timestamps, …) is ignored so an agency cannot
+  // publish its own listing without admin approval.
+  for (const field of EDITABLE_FIELDS) {
+    if (body[field] !== undefined) data[field] = body[field];
+  }
+  if (data.modelYear !== undefined) data.modelYear = Number(data.modelYear);
+  if (data.seats !== undefined) data.seats = data.seats ? Number(data.seats) : null;
+
+  if (body.location) data.location = body.location;
+  if (body.pricing) {
+    data.priceDaily = Number(body.pricing.daily);
+    data.priceWeekly = Number(body.pricing.weekly);
+    data.priceMonthly = Number(body.pricing.monthly);
+  }
+
+  if (body.status !== undefined) {
+    if (user.role === "admin") {
+      if (!ADMIN_STATUSES.includes(body.status)) return apiError(res, "Invalid vehicle status");
+    } else {
+      if (!AGENCY_STATUSES.includes(body.status)) {
+        return apiError(res, "Agencies can only set a vehicle to available or maintenance", 403);
+      }
+      if (!vehicle.isApproved) return apiError(res, "Vehicle is still awaiting admin approval");
+      if (vehicle.status === "rented") return apiError(res, "Cannot change status while the vehicle is rented");
+    }
+    data.status = body.status;
+  }
+
+  // isApproved is admin-only and lives on the admin approval endpoint.
+  if (body.isApproved !== undefined && user.role === "admin") {
+    data.isApproved = Boolean(body.isApproved);
+  }
+
+  if (data.vehicleNumber && data.vehicleNumber !== vehicle.vehicleNumber) {
+    const clash = await db.query.vehicles.findFirst({
+      where: eq(vehicles.vehicleNumber, data.vehicleNumber),
+    });
+    if (clash) return apiError(res, "Vehicle number already exists", 409);
+  }
+
+  if (Object.keys(data).length === 0) return apiError(res, "No updatable fields provided");
+
   await db.update(vehicles).set(data).where(eq(vehicles.id, id));
 
   const updated = await db.query.vehicles.findFirst({
