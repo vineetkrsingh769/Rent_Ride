@@ -1,0 +1,20 @@
+{
+  "name": "rentride",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["frontend", "api"],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w rentride-api\" \"npm run dev -w rentride-frontend\"",
+    "dev:api": "npm run dev -w rentride-api",
+    "dev:web": "npm run dev -w rentride-frontend",
+    "build": "npm run build -w rentride-api && npm run build -w rentride-frontend",
+    "db:push": "npm run db:push -w rentride-api",
+    "db:generate": "npm run db:generate -w rentride-api",
+    "db:studio": "npm run db:studio -w rentride-api",
+    "db:setup": "powershell -ExecutionPolicy Bypass -File scripts/setup-postgres.ps1",
+    "seed": "npm run seed -w rentride-api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

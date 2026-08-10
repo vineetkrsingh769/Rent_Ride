@@ -1,0 +1,137 @@
+@import "tailwindcss" source(none);
+@source "../src";
+
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 1rem;
+  --background: oklch(0.982 0.025 72.0); /* Clean light cream background inspired by #FAFFA3 */
+  --foreground: oklch(0.15 0.02 125.0); /* Dark forest-black for high contrast readability */
+  --card: oklch(1.0 0.0 0.0); /* Pure white cards to float cleanly on background */
+  --card-foreground: oklch(0.15 0.02 125.0);
+  --popover: oklch(1.0 0.0 0.0);
+  --popover-foreground: oklch(0.15 0.02 125.0);
+  --primary: oklch(0.42 0.10 135.0); /* Darker forest emerald green for AAA accessibility contrast on text/buttons */
+  --primary-foreground: oklch(0.99 0.005 135.0); /* Light cream text for buttons */
+  --secondary: oklch(0.882 0.088 79.5); /* Lime green #C6E772 */
+  --secondary-foreground: oklch(0.15 0.02 125.0);
+  --muted: oklch(0.94 0.02 72.0); /* Warm grey-cream for muted containers */
+  --muted-foreground: oklch(0.42 0.02 72.0); /* Soft contrast text */
+  --accent: oklch(0.787 0.075 125.0); /* Pastel green #66D47E as accent */
+  --accent-foreground: oklch(0.15 0.02 125.0);
+  --destructive: oklch(0.60 0.20 25);
+  --destructive-foreground: oklch(0.99 0.005 135.0);
+  --border: oklch(0.88 0.025 72.0); /* Subtle light border */
+  --input: oklch(0.90 0.025 72.0);
+  --ring: oklch(0.42 0.10 135.0);
+  --chart-1: oklch(0.787 0.075 125.0);
+  --chart-2: oklch(0.882 0.088 79.5);
+  --chart-3: oklch(0.978 0.088 62.5);
+  --chart-4: oklch(0.60 0.06 140);
+  --chart-5: oklch(0.45 0.04 160);
+  --sidebar: oklch(0.99 0.01 72.0);
+  --sidebar-foreground: oklch(0.15 0.02 125.0);
+  --sidebar-primary: oklch(0.42 0.10 135.0);
+  --sidebar-primary-foreground: oklch(0.99 0.005 135.0);
+  --sidebar-accent: oklch(0.94 0.02 72.0);
+  --sidebar-accent-foreground: oklch(0.15 0.02 125.0);
+  --sidebar-border: oklch(0.88 0.025 72.0);
+  --sidebar-ring: oklch(0.42 0.10 135.0);
+}
+
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.2; filter: blur(80px); }
+  50% { transform: scale(1.15); opacity: 0.35; filter: blur(100px); }
+}
+
+@keyframes textShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 8s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: textShimmer 4s linear infinite;
+}

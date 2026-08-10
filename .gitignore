@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# vite
+dist/
+.vinxi/
+
+# env / secrets — never commit
+.env
+.env.*
+!.env.example
+.env*.local
+*.pem
+credentials*.json
+
+# misc
+.DS_Store
+npm-debug.log*
+Thumbs.db
+
+# typescript / local tooling
+*.tsbuildinfo
+.vscode/*
+!.vscode/extensions.json
+
+# python export helper cache
+__pycache__/
+*.pyc

@@ -1,0 +1,26 @@
+databases:
+  - name: rentride-db
+    plan: free
+    databaseName: rentride
+    user: rentride
+
+services:
+  - type: web
+    name: rentride-api
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install
+    startCommand: npm run start -w rentride-api
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rentride-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
