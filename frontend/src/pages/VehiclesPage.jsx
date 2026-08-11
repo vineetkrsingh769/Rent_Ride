@@ -65,8 +65,13 @@ function VehiclesPage() {
     if (fuelType) params.fuelType = fuelType;
     if (debouncedLocation) params.location = debouncedLocation;
     if (debouncedQ.trim()) params.search = debouncedQ.trim();
+    // With a trip selected, ask the API to exclude vehicles already booked for it.
+    if (tripMode && tripFrom && tripTo) {
+      params.from = tripFrom;
+      params.to = tripTo;
+    }
     return params;
-  }, [type, fuelType, minPrice, maxPrice, debouncedQ, rentalDuration, debouncedLocation]);
+  }, [type, fuelType, minPrice, maxPrice, debouncedQ, rentalDuration, debouncedLocation, tripMode, tripFrom, tripTo]);
 
   const { data: vehicles = [], isLoading, isFetching, isError, error } = useQuery({
     queryKey: ["vehicles", searchParams_api],

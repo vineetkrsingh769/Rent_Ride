@@ -1,11 +1,10 @@
-import { Router } from "express";
 import { asc, eq } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { pricingCategories } from "../lib/schema.js";
-import { apiSuccess } from "../lib/api.js";
+import { apiSuccess, createRouter } from "../lib/api.js";
 import { serializeId } from "../lib/serialize.js";
 
-const router = Router();
+const router = createRouter();
 
 router.get("/", async (_req, res) => {
   const categories = await db

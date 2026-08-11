@@ -138,6 +138,7 @@ VehiclesPage.jsx → api-client.js → GET /api/vehicles → vehicles.js → Pos
 |-------------|--------|----------------------|
 | User registration & login | ✅ | `/login` — customer / agency signup; JWT cookie session |
 | Browse available vehicles | ✅ | `/vehicles` — approved & available fleet |
+| Real-time availability by date | ✅ | Trip dates exclude vehicles already booked for that window |
 | Filter by type (2W / 4W) | ✅ | Bike / Car toggles |
 | Filter by price range | ✅ | Min/max sliders by rental plan |
 | Filter by rental duration | ✅ | Daily / weekly / monthly |
@@ -235,7 +236,8 @@ Unauthorized or wrong-role access returns `401` / `403` from the API.
 | **Vehicle** | Fleet listing with specs, pricing, status, location, owner |
 | **Booking** | Rental request lifecycle with dates, times, price, status |
 | **PricingCategory** | Admin-defined rate templates by vehicle type |
-| **Location** | Represented as a city/location string on each vehicle (multi-city support) |
+| **BookingConflict** | Log of booking attempts rejected for a date clash; feeds the conflict-rate KPI |
+| **Location** | Represented as a city/location string on each vehicle (multi-city support) — see 11.5 |
 
 ### 11.2 Entity Relationship (Logical)
 
@@ -261,6 +263,32 @@ Admin manages PricingCategory (independent catalog)
 `pending` → `approved` / `rejected` / `cancelled` → `active` → `completed`
 
 Conflict detection blocks overlapping bookings for the same vehicle when status is `pending`, `approved`, or `active`.
+
+The same overlap rule drives browse-time availability: when a customer selects trip
+dates, `GET /api/vehicles?from=&to=` excludes any vehicle already committed for that
+window, so the list a customer sees matches exactly what booking creation will accept.
+
+### 11.5 Location Modelling — Design Decision
+
+`Location` is stored as a city string on each `Vehicle` rather than as a separate
+table with a foreign key.
+
+**Rationale.** Phase 1 targets a single-city pilot with expansion planned later. The
+city field already satisfies every location requirement in scope — customers filter by
+city (case-insensitive match), agencies set a city per vehicle, and vehicles from
+multiple cities coexist in one fleet. A separate table would add a join, a migration
+and a managed-city admin screen without changing any user-visible behaviour at this
+stage.
+
+**Trade-off accepted.** City names are not constrained to a controlled vocabulary, so
+two spellings of the same city are two values.
+
+**Normalisation path.** When per-city rules arrive — city-specific pricing, taxes,
+pickup hubs, or a city-level admin — the migration is: create `Location
+(id, city, state, pincode)`, seed one row per distinct existing city, add
+`Vehicle.locationId` as a foreign key, backfill it from the current text, then drop the
+text column. Filtering moves from a string match to a join. No booking or pricing logic
+is affected.
 
 ---
 
@@ -293,7 +321,7 @@ Tracked on the **Admin Analytics** dashboard:
 | Average rental duration | Average `totalDays` of active-class bookings |
 | Monthly active users | Unique customers active in last 30 days (bookings + new customers) |
 | Total revenue | Sum of prices for approved/active/completed bookings |
-| Booking conflict rate | Reserved for conflict logging (Phase 1 baseline available) |
+| Booking conflict rate | Rejected-for-clash attempts ÷ (those + bookings created), from the `BookingConflict` log |
 | Pending approvals | Vehicles awaiting admin listing approval |
 
 ---

@@ -1,13 +1,12 @@
-import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { users } from "../lib/schema.js";
 import { signToken, cookieOptions, getSession } from "../lib/auth.js";
-import { apiSuccess, apiError } from "../lib/api.js";
+import { apiSuccess, apiError, createRouter } from "../lib/api.js";
 import { formatUser } from "../lib/serialize.js";
 
-const router = Router();
+const router = createRouter();
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body ?? {};

@@ -17,4 +17,22 @@ async function hasBookingConflict(vehicleId, startDate, endDate, excludeBookingI
   return !!conflict;
 }
 
-export { hasBookingConflict };
+/**
+ * Sub-select of vehicle ids already committed for any part of [startDate, endDate].
+ * Uses the same overlap rule as hasBookingConflict so what the browse list hides
+ * matches exactly what booking creation would reject.
+ */
+function bookedVehicleIds(startDate, endDate) {
+  return db
+    .select({ id: bookings.vehicleId })
+    .from(bookings)
+    .where(
+      and(
+        inArray(bookings.status, CONFLICT_STATUSES),
+        lte(bookings.startDate, endDate),
+        gte(bookings.endDate, startDate)
+      )
+    );
+}
+
+export { bookedVehicleIds, hasBookingConflict };

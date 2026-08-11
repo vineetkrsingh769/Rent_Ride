@@ -1,12 +1,11 @@
-import { Router } from "express";
 import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { bookings, vehicles } from "../lib/schema.js";
-import { apiSuccess, apiError } from "../lib/api.js";
+import { apiSuccess, apiError, createRouter } from "../lib/api.js";
 import { resolveUser } from "../lib/session.js";
 import { formatVehicle, serializeId } from "../lib/serialize.js";
 
-const router = Router();
+const router = createRouter();
 
 const agencyBookingWith = {
   customer: { columns: { id: true, name: true, email: true, phone: true } },

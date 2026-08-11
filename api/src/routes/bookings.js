@@ -1,14 +1,13 @@
-import { Router } from "express";
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { bookingConflicts, bookings, vehicles } from "../lib/schema.js";
-import { apiSuccess, apiError } from "../lib/api.js";
+import { apiSuccess, apiError, createRouter } from "../lib/api.js";
 import { resolveUser } from "../lib/session.js";
 import { hasBookingConflict } from "../lib/booking.js";
 import { calculateRentalPrice, getDaysBetween } from "../lib/types.js";
 import { formatVehicle, serializeId } from "../lib/serialize.js";
 
-const router = Router();
+const router = createRouter();
 
 const bookingWith = {
   vehicle: {

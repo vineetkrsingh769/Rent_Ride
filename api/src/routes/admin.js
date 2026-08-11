@@ -1,12 +1,11 @@
-import { Router } from "express";
 import { and, asc, avg, count, desc, eq, gte, inArray, ne, sum } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { bookingConflicts, bookings, pricingCategories, users, vehicles } from "../lib/schema.js";
-import { apiSuccess, apiError } from "../lib/api.js";
+import { apiSuccess, apiError, createRouter } from "../lib/api.js";
 import { formatUser, formatVehicle, serializeId } from "../lib/serialize.js";
 import { resolveUser } from "../lib/session.js";
 
-const router = Router();
+const router = createRouter();
 
 const bookingWith = {
   vehicle: {
