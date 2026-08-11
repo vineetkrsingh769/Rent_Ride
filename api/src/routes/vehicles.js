@@ -26,6 +26,14 @@ const EDITABLE_FIELDS = [
   "description",
   "images",
 ];
+// The API serialises location as { city }, so clients can echo that object back.
+// Collapse it to the plain string the column stores instead of writing "[object Object]".
+function normalizeLocation(value) {
+  if (typeof value === "string") return value.trim();
+  if (value && typeof value === "object" && typeof value.city === "string") return value.city.trim();
+  return null;
+}
+
 const AGENCY_STATUSES = ["available", "maintenance"];
 const ADMIN_STATUSES = ["available", "maintenance", "pending_approval", "rented"];
 
@@ -114,7 +122,7 @@ router.post("/", async (req, res) => {
       status: user.role === "admin" ? "available" : "pending_approval",
       isApproved: user.role === "admin",
       ownerId: user.userId,
-      location: body.location,
+      location: normalizeLocation(body.location) ?? "",
     })
     .returning();
 
@@ -159,7 +167,11 @@ router.put("/:id", async (req, res) => {
   if (data.modelYear !== undefined) data.modelYear = Number(data.modelYear);
   if (data.seats !== undefined) data.seats = data.seats ? Number(data.seats) : null;
 
-  if (body.location) data.location = body.location;
+  if (body.location) {
+    const city = normalizeLocation(body.location);
+    if (!city) return apiError(res, "location must be a city name");
+    data.location = city;
+  }
   if (body.pricing) {
     data.priceDaily = Number(body.pricing.daily);
     data.priceWeekly = Number(body.pricing.weekly);

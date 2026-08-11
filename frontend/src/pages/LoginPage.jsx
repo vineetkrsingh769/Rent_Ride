@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Eye, EyeOff, Loader2, Lock, Mail, User, Building2 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
-import rentrideIcon from "../assets/rentride_icon.png";
 const HERO = "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1920&q=80";
 function LoginPage() {
   const { login, register, user, loading: authLoading } = useAuth();
@@ -67,7 +66,7 @@ function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/85 to-primary/70" />
           <div className="relative flex h-full flex-col justify-between p-10 text-primary-foreground">
             <Link to="/" className="flex items-center gap-2.5">
-              <img src={rentrideIcon} alt="RentRide Logo" className="h-14 w-14 rounded-xl object-contain" />
+              <img src="/rentride_icon.png" alt="RentRide Logo" className="h-14 w-14 rounded-xl object-contain" />
               <span className="text-xl font-semibold tracking-tight">RentRide</span>
             </Link>
             <div className="max-w-md">
@@ -88,7 +87,7 @@ function LoginPage() {
         <main className="flex w-full flex-1 flex-col justify-center overflow-y-auto px-6 py-10 sm:px-12 lg:w-1/2 lg:px-16">
           <div className="mx-auto w-full max-w-sm">
             <Link to="/" className="mb-8 flex items-center gap-2 lg:hidden">
-              <img src={rentrideIcon} alt="RentRide Logo" className="h-12 w-12 rounded-lg object-contain" />
+              <img src="/rentride_icon.png" alt="RentRide Logo" className="h-12 w-12 rounded-lg object-contain" />
               <span className="text-lg font-semibold">RentRide</span>
             </Link>
 

@@ -1,12 +1,11 @@
 import { Link } from "react-router-dom";
-import rentrideIcon from "../assets/rentride_icon.png";
 function SiteFooter() {
   return <footer className="mt-20 border-t border-border/40 bg-card/25">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <img src={rentrideIcon} alt="RentRide Logo" className="h-10 w-10 rounded-lg object-contain" />
+              <img src="/rentride_icon.png" alt="RentRide Logo" className="h-10 w-10 rounded-lg object-contain" />
               <span className="text-lg font-bold tracking-tight text-foreground">Rent<span className="text-primary">Ride</span></span>
             </Link>
             <p className="max-w-xs text-sm text-muted-foreground/80 leading-relaxed">

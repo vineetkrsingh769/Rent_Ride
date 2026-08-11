@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "./AuthProvider";
-import rentrideIcon from "../assets/rentride_icon.png";
 function SiteHeader() {
   const { user, logout, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -16,7 +15,7 @@ function SiteHeader() {
   return <header className="sticky top-4 z-50 mx-auto max-w-7xl px-4 sm:px-6">
       <div className="flex h-16 items-center justify-between px-6 rounded-2xl border border-border/40 bg-card/65 backdrop-blur-md shadow-lg">
         <Link to="/" className="flex items-center gap-2">
-          <img src={rentrideIcon} alt="RentRide Logo" className="h-12 w-12 rounded-lg object-contain" />
+          <img src="/rentride_icon.png" alt="RentRide Logo" className="h-12 w-12 rounded-lg object-contain" />
           <span className="text-lg font-bold tracking-tight text-foreground">Rent<span className="text-primary">Ride</span></span>
         </Link>
  

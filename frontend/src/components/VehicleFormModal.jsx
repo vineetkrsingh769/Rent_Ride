@@ -46,7 +46,9 @@ function VehicleFormModal({ open, onClose, onSubmit, initial }) {
         transmission: initial.transmission,
         seats: initial.seats,
         pricing: initial.pricing,
-        location: initial.location ?? "",
+        // v normalises the API's { city } object down to a plain city string;
+        // feeding initial.location straight in would put an object in a text input.
+        location: v.location,
         status: initial.status,
         images: initial.images
       });
