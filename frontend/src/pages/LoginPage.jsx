@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Eye, EyeOff, Loader2, Lock, Mail, User, Building2 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
-const HERO = "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1920&q=80";
+const HERO = "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1280&q=70";
 function LoginPage() {
   const { login, register, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
