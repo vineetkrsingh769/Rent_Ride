@@ -9,7 +9,7 @@ function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
-const COMMONS_FILE = /^(https:\/\/upload\.wikimedia\.org\/wikipedia\/commons)\/([0-9a-f])\/([0-9a-f]{2})\/([^/]+)$/;
+const COMMONS_FILE = /^(https:\/\/upload\.wikimedia\.org\/wikipedia\/commons)\/([0-9a-f])\/([0-9a-f]{2})\/([^/?#]+)(?:[?#].*)?$/;
 
 /**
  * Vehicle photos are stored as source URLs, and Wikimedia originals run to
