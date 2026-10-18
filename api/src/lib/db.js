@@ -2,6 +2,16 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema.js";
 
+import path from "path";
+import { fileURLToPath } from "url";
+import { config } from "dotenv";
+
+if (!process.env.DATABASE_URL) {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  config({ path: path.resolve(__dirname, "../../../.env") });
+  config({ path: path.resolve(__dirname, "../../.env") });
+}
+
 const globalForDb = globalThis;
 
 const databaseUrl = process.env.DATABASE_URL ?? "";

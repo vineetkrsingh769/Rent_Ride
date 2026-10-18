@@ -40,8 +40,7 @@ function formatVehicle(vehicle) {
   });
 }
 function formatUser(user) {
-  const { password, ...rest } = user;
-  void password;
+  const { password: _password, ...rest } = user;
   return serializeId(rest);
 }
 export {
