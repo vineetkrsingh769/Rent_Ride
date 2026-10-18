@@ -6,13 +6,14 @@ import { resolveUser } from "../lib/session.js";
 import { hasBookingConflict } from "../lib/booking.js";
 import { calculateRentalPrice, getDaysBetween } from "../lib/types.js";
 import { formatVehicle, serializeId } from "../lib/serialize.js";
+import { notifyBookingCreated, notifyBookingStatusUpdated } from "../lib/notifications.js";
 
 const router = createRouter();
 
 const bookingWith = {
   vehicle: {
     with: {
-      owner: { columns: { id: true, name: true, agencyName: true } },
+      owner: { columns: { id: true, name: true, agencyName: true, email: true, phone: true } },
     },
   },
   customer: { columns: { id: true, name: true, email: true, phone: true } },
@@ -116,7 +117,15 @@ router.post("/", async (req, res) => {
     with: bookingWith,
   });
 
-  // Email notification removed
+  // Trigger async email and SMS notifications (non-blocking)
+  if (booking) {
+    notifyBookingCreated({
+      booking,
+      vehicle: booking.vehicle,
+      customer: booking.customer,
+      agency: booking.vehicle?.owner,
+    }).catch((err) => console.error("[notifications] Error dispatching booking created alerts:", err));
+  }
 
   return apiSuccess(
     res,
@@ -178,11 +187,19 @@ router.patch("/:id", async (req, res) => {
 
   const updated = await db.query.bookings.findFirst({
     where: eq(bookings.id, id),
-    with: {
-      vehicle: true,
-      customer: { columns: { id: true, name: true, email: true, phone: true } },
-    },
+    with: bookingWith,
   });
+
+  if (updated && status !== booking.status) {
+    notifyBookingStatusUpdated({
+      booking: updated,
+      vehicle: updated.vehicle,
+      customer: updated.customer,
+      agency: updated.vehicle?.owner,
+      newStatus: status,
+      prevStatus: booking.status,
+    }).catch((err) => console.error("[notifications] Error dispatching status update alerts:", err));
+  }
 
   return apiSuccess(
     res,
