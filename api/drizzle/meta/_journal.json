@@ -8,6 +8,13 @@
       "when": 1783493693335,
       "tag": "0000_fluffy_rictor",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792304668377,
+      "tag": "0001_fair_luminals",
+      "breakpoints": true
     }
   ]
 }

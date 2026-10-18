@@ -8,9 +8,15 @@
     "build": "echo \"no build step\"",
     "start": "node src/server.js",
     "seed": "node scripts/seed.js",
+    "seed:if-empty": "node scripts/seed.js --if-empty",
+    "test:notifications": "node scripts/test-notifications.js",
     "db:push": "drizzle-kit push",
+    "db:migrate": "drizzle-kit migrate",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^3.3.0",
@@ -18,12 +24,11 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^10.1.1",
     "postgres": "^3.4.9"
-  },
-  "devDependencies": {
-    "drizzle-kit": "^0.31.10"
   }
 }

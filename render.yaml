@@ -10,7 +10,11 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: npm install
+    # Migrations must run before the API boots, otherwise Render serves a healthy
+    # looking process against an empty database. `seed:if-empty` populates the
+    # demo fleet and the admin account on the first deploy only — it is a no-op
+    # once the User table has rows, so redeploys never wipe live data.
+    buildCommand: npm install && npm run db:migrate -w rentride-api && npm run seed:if-empty -w rentride-api
     startCommand: npm run start -w rentride-api
     healthCheckPath: /api/health
     envVars:
@@ -22,5 +26,21 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
+      # Exact origin of the deployed frontend, no trailing slash — CORS and the
+      # cross-site auth cookie both match on it. Set in the Render dashboard.
       - key: FRONTEND_URL
+        sync: false
+      # Required for the first deploy: these create the admin, agency and
+      # customer logins. Set them in the Render dashboard before deploying.
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      - key: SEED_AGENCY_EMAIL
+        sync: false
+      - key: SEED_AGENCY_PASSWORD
+        sync: false
+      - key: SEED_CUSTOMER_EMAIL
+        sync: false
+      - key: SEED_CUSTOMER_PASSWORD
         sync: false

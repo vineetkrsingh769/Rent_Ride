@@ -21,7 +21,20 @@ function requireEnv(name) {
   return value;
 }
 
+// `npm run seed -- --if-empty` is what the deploy build uses. Seeding wipes
+// every table below, so on an already-populated database it must do nothing
+// rather than destroy live bookings on each redeploy.
+async function alreadySeeded() {
+  const existing = await db.select({ id: users.id }).from(users).limit(1);
+  return existing.length > 0;
+}
+
 async function seed() {
+  if (process.argv.includes("--if-empty") && (await alreadySeeded())) {
+    console.log("Database already has users — skipping seed (--if-empty).");
+    return;
+  }
+
   const adminEmail = requireEnv("SEED_ADMIN_EMAIL");
   const adminPassword = requireEnv("SEED_ADMIN_PASSWORD");
   const agencyEmail = requireEnv("SEED_AGENCY_EMAIL");
