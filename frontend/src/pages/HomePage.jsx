@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { ArrowRight, MapPin, Sparkles, Search, Star } from "lucide-react";
+import { ArrowRight, MapPin, Search, Star } from "lucide-react";
 import { fetchVehiclesList } from "@/lib/api-client";
 
 const CITIES = ["Mumbai", "Goa", "Bangalore", "Delhi", "Pune", "Kolkata"];
@@ -69,12 +69,8 @@ function HomePage() {
       <div className="absolute bottom-1/3 right-1/4 -z-10 h-[450px] w-[450px] rounded-full bg-primary/5 animate-pulse-glow" style={{ animationDelay: "3s" }} />
 
       {/* Hero Section */}
-      <section className="relative pt-10 pb-14 md:pt-12 md:pb-16 flex flex-col items-center text-center px-4">
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary animate-float">
-          <Sparkles className="h-4 w-4 animate-pulse" /> Self-Drive Freedom, Simplified
-        </span>
-
-        <h1 className="mt-8 text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl text-foreground leading-[1.1] max-w-4xl">
+      <section className="relative pt-6 pb-12 md:pt-8 md:pb-16 flex flex-col items-center text-center px-4">
+        <h1 className="text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl text-foreground leading-[1.1] max-w-4xl">
           Rent Premium Rides. <br />
           Explore In{" "}
           <span className="bg-gradient-to-r from-primary via-primary/80 to-emerald-400 bg-clip-text text-transparent transition-all duration-500">

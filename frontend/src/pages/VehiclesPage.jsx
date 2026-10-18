@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CalendarRange, Sparkles, X, MapPin } from "lucide-react";
+import { CalendarRange, Sparkles, X, MapPin, Search } from "lucide-react";
 import { fetchVehiclesList } from "@/lib/api-client";
 import { VehicleCard } from "@/components/VehicleCard";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -34,6 +34,30 @@ function formatTripDate(dateStr) {
   return new Date(dateStr).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
 
+function VehicleCardSkeleton() {
+  return (
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card p-0 shadow-xs animate-pulse">
+      <div className="aspect-[16/10.5] bg-muted/60" />
+      <div className="p-4 sm:p-5 space-y-3">
+        <div className="flex justify-between">
+          <div className="h-3 w-20 rounded bg-muted" />
+          <div className="h-4 w-10 rounded bg-muted" />
+        </div>
+        <div className="h-5 w-36 rounded bg-muted/80" />
+        <div className="flex gap-1.5 pt-1">
+          <div className="h-5 w-16 rounded bg-muted/50" />
+          <div className="h-5 w-16 rounded bg-muted/50" />
+          <div className="h-5 w-16 rounded bg-muted/50" />
+        </div>
+        <div className="flex items-center justify-between border-t border-border/40 pt-3 mt-4">
+          <div className="h-6 w-20 rounded bg-muted/80" />
+          <div className="h-7 w-24 rounded-xl bg-muted/60" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function VehiclesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tripMode = searchParams.get("trip") === "1";
@@ -49,13 +73,14 @@ function VehiclesPage() {
   const [maxPrice, setMaxPrice] = useState(initialPrices.maxPrice);
   const [q, setQ] = useState("");
   const [locationCity, setLocationCity] = useState(initialCity);
+  const [sortBy, setSortBy] = useState("recommended");
 
   const debouncedQ = useDebouncedValue(q);
   const debouncedLocation = useDebouncedValue(locationCity.trim());
   const rentalDuration = duration;
   const priceBounds = PRICE_BOUNDS[rentalDuration] ?? PRICE_BOUNDS.daily;
 
-  const searchParams_api = useMemo(() => {
+  const apiSearchParams = useMemo(() => {
     const params = {
       minPrice: String(minPrice),
       maxPrice: String(maxPrice),
@@ -74,9 +99,17 @@ function VehiclesPage() {
   }, [type, fuelType, minPrice, maxPrice, debouncedQ, rentalDuration, debouncedLocation, tripMode, tripFrom, tripTo]);
 
   const { data: vehicles = [], isLoading, isFetching, isError, error } = useQuery({
-    queryKey: ["vehicles", searchParams_api],
-    queryFn: () => fetchVehiclesList(searchParams_api)
+    queryKey: ["vehicles", apiSearchParams],
+    queryFn: () => fetchVehiclesList(apiSearchParams)
   });
+
+  const sortedVehicles = useMemo(() => {
+    const list = [...vehicles];
+    if (sortBy === "price_asc") return list.sort((a, b) => a.pricePerDay - b.pricePerDay);
+    if (sortBy === "price_desc") return list.sort((a, b) => b.pricePerDay - a.pricePerDay);
+    if (sortBy === "name_asc") return list.sort((a, b) => a.name.localeCompare(b.name));
+    return list;
+  }, [vehicles, sortBy]);
 
   const priceLabel = duration === "weekly" ? "week" : duration === "monthly" ? "month" : "day";
   const cityLabel = locationCity || "All cities";
@@ -277,20 +310,86 @@ function VehiclesPage() {
           </div>
         </aside>
 
-        <div>
+        <div className="space-y-4">
+          {/* Top Bar with Quick Filters and Sort */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border/40 bg-card/60 p-3 backdrop-blur-sm">
+            {/* Quick Filter Chips */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { label: "All Rides", active: type === "All" && !fuelType, onClick: () => { setType("All"); setFuelType(""); } },
+                { label: "⚡ Electric", active: fuelType === "electric", onClick: () => setFuelType(fuelType === "electric" ? "" : "electric") },
+                { label: "🏍️ Bikes", active: type === "2W", onClick: () => setType(type === "2W" ? "All" : "2W") },
+                { label: "🚗 Cars", active: type === "4W", onClick: () => setType(type === "4W" ? "All" : "4W") },
+              ].map((chip) => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={chip.onClick}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                    chip.active
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Sort Selector */}
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sort:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="rounded-xl border border-border/60 bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none focus:border-primary"
+              >
+                <option value="recommended">Recommended</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="name_asc">Name: A to Z</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Vehicle Grid or States */}
           {isError ? (
             <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-10 text-center text-sm text-destructive">
               {error?.message || "Could not load vehicles."}
               <span className="mt-2 block font-medium text-muted-foreground">Check that the API is running, then refresh.</span>
             </div>
-          ) : vehicles.length === 0 && !isLoading ? (
-            <div className="rounded-2xl border border-dashed border-border/60 bg-card/40 p-10 text-center text-sm text-muted-foreground">
-              No vehicles match your filters.
-              <span className="mt-2 block font-medium">Widen your search or reset filters to see more.</span>
+          ) : isLoading ? (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <VehicleCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : sortedVehicles.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border/60 bg-card/40 p-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground">
+                <Search className="h-6 w-6" />
+              </div>
+              <h3 className="mt-4 text-base font-bold text-foreground">No vehicles found</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                No rides match your active search or filters. Try adjusting your dates, location, or price filters.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setType("All");
+                  setFuelType("");
+                  handleDurationChange("daily");
+                  setLocationCity("");
+                  setQ("");
+                }}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow hover:bg-primary/90 transition"
+              >
+                Reset all filters
+              </button>
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {vehicles.map((v) => (
+              {sortedVehicles.map((v) => (
                 <VehicleCard key={v.id} v={v} tripQuery={tripQuery} />
               ))}
             </div>

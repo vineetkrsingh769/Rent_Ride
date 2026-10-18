@@ -46,7 +46,6 @@ function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
-export {
-  AuthProvider,
-  useAuth
-};
+export { AuthProvider };
+// eslint-disable-next-line react-refresh/only-export-components
+export { useAuth };

@@ -16,13 +16,24 @@ async function apiRequest(path, init) {
       ...init,
       headers: { "Content-Type": "application/json", ...init?.headers }
     });
-    const json = await res.json();
+    const contentType = res.headers.get("content-type") || "";
+    let json = null;
+    if (contentType.includes("application/json")) {
+      json = await res.json();
+    } else {
+      const text = await res.text();
+      return { error: `Server error (${res.status}): ${text ? text.slice(0, 100) : res.statusText}` };
+    }
     if (!json.success || json.data === void 0) {
+      if (res.status === 401) {
+        return { error: "Please sign in with appropriate permissions." };
+      }
       return { error: json.error ?? "Request failed" };
     }
     return { data: json.data };
-  } catch {
-    return { error: "Network error \u2014 is the API running?" };
+  } catch (err) {
+    console.error(`[API Error] Request to ${path} failed:`, err);
+    return { error: err?.message || "Network error — is the API running?" };
   }
 }
 async function apiFetch(path, init) {

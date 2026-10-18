@@ -33,24 +33,33 @@ function sizedImageUrl(url, width = 960) {
   return url;
 }
 function apiVehicleToVehicle(api) {
+  const images = (api.images && api.images.length > 0)
+    ? api.images.map(sizedImageUrl)
+    : ["https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=70"];
+
   return {
     id: api._id,
     name: api.name,
     brand: api.brand,
+    model: api.vehicleModel || api.name,
     type: api.type,
     year: api.modelYear,
-    fuel: FUEL_MAP[api.fuelType.toLowerCase()] ?? capitalize(api.fuelType),
-    transmission: api.transmission.toLowerCase() === "automatic" ? "Automatic" : "Manual",
+    fuel: FUEL_MAP[api.fuelType?.toLowerCase()] ?? capitalize(api.fuelType || "petrol"),
+    transmission: api.transmission?.toLowerCase() === "automatic" ? "Automatic" : "Manual",
     seats: api.seats ?? (api.type === "2W" ? 2 : 5),
-    pricePerDay: api.pricing.daily,
-    pricePerWeek: api.pricing.weekly,
-    pricePerMonth: api.pricing.monthly,
+    mileage: api.mileage || (api.type === "2W" ? "45 km/l" : "18 km/l"),
+    description: api.description,
+    pricePerDay: api.pricing?.daily ?? 0,
+    pricePerWeek: api.pricing?.weekly ?? 0,
+    pricePerMonth: api.pricing?.monthly ?? 0,
     deposit: api.deposit ?? 0,
     location: typeof api.location === "string" ? api.location : api.location?.city ?? "India",
     available: api.status === "available",
-    image: sizedImageUrl(api.images?.[0]) ?? "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=70",
-    agency: api.owner?.agencyName ?? api.owner?.name ?? "Rental Agency",
-    rating: 4.5,
+    image: images[0],
+    images,
+    agency: api.owner?.agencyName ?? api.owner?.name ?? "Speed Rentals",
+    rating: 4.8,
+    trips: 32,
     number: api.vehicleNumber
   };
 }
