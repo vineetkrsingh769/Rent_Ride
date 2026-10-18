@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   AlertTriangle,
@@ -40,7 +41,8 @@ async function load(fn) {
   return result.data;
 }
 function AdminPage() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, loading: authLoading } = useAuth();
+  const isAdmin = currentUser?.role === "admin";
   const queryClient = useQueryClient();
   const [tab, setTab] = useState("overview");
   const [userRoleFilter, setUserRoleFilter] = useState("");
@@ -55,25 +57,28 @@ function AdminPage() {
   });
   const analyticsQ = useQuery({
     queryKey: ["admin-analytics"],
-    queryFn: () => load(() => fetchAdminAnalytics()).then((d) => d.kpis)
+    queryFn: () => load(() => fetchAdminAnalytics()).then((d) => d.kpis),
+    enabled: isAdmin
   });
   const usersQ = useQuery({
     queryKey: ["admin-users", userRoleFilter],
-    queryFn: () => load(() => fetchAdminUsers(userRoleFilter || void 0))
+    queryFn: () => load(() => fetchAdminUsers(userRoleFilter || void 0)),
+    enabled: isAdmin
   });
   const pendingQ = useQuery({
     queryKey: ["admin-pending-vehicles"],
-    queryFn: () => load(fetchPendingVehicles)
+    queryFn: () => load(fetchPendingVehicles),
+    enabled: isAdmin
   });
   const bookingsQ = useQuery({
     queryKey: ["bookings", bookingStatus || "all"],
     queryFn: () => fetchBookings(bookingStatus || void 0),
-    enabled: tab === "bookings"
+    enabled: isAdmin && tab === "bookings"
   });
   const pricingQ = useQuery({
     queryKey: ["admin-pricing"],
     queryFn: () => load(fetchPricingCategories),
-    enabled: tab === "pricing" || tab === "overview"
+    enabled: isAdmin && (tab === "pricing" || tab === "overview")
   });
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
@@ -158,6 +163,69 @@ function AdminPage() {
     { icon: CalendarCheck, label: "Total bookings", value: kpis?.totalBookings ?? "\u2014" },
     { icon: DollarSign, label: "Total revenue", value: kpis ? `\u20B9${kpis.totalRevenue.toLocaleString()}` : "\u2014" }
   ];
+  if (authLoading) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="mt-4 text-sm font-medium text-muted-foreground">Checking administrator credentials...</p>
+      </main>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <main className="mx-auto max-w-xl px-4 py-16 sm:px-6">
+        <div className="rounded-3xl border border-border/60 bg-card p-8 text-center shadow-lg">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
+            <AlertTriangle className="h-7 w-7" />
+          </div>
+          <h1 className="mt-4 text-2xl font-bold">Admin Sign In Required</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            You must be signed in as an administrator to access the admin console and view platform analytics.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Link
+              to="/login"
+              className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow transition hover:opacity-90"
+            >
+              Sign In as Admin
+            </Link>
+            <Link
+              to="/"
+              className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold hover:bg-muted/30 transition"
+            >
+              Home
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (currentUser.role !== "admin") {
+    return (
+      <main className="mx-auto max-w-xl px-4 py-16 sm:px-6">
+        <div className="rounded-3xl border border-border/60 bg-card p-8 text-center shadow-lg">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-500">
+            <X className="h-7 w-7" />
+          </div>
+          <h1 className="mt-4 text-2xl font-bold">Access Restricted</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            You are signed in as a <span className="font-semibold text-foreground uppercase">{currentUser.role}</span>. This page is only accessible by platform administrators.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Link
+              to="/"
+              className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow transition hover:opacity-90"
+            >
+              Return Home
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
